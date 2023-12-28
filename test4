@@ -1,0 +1,62 @@
+% Нахождение угла наклона для каждого голубого объекта
+angles = zeros(1, length(B)); % Массив для хранения углов наклона
+for k = 1:length(B)
+    boundary = B{k};
+    [orientation, ~] = fit_line_to_boundary(boundary); % Функция для подгонки линии и вычисления угла
+    angles(k) = orientation; % Сохранение угла наклона
+    text(mean(boundary(:,2)), mean(boundary(:,1)), sprintf('%.2f°', orientation), ...
+         'Color', 'y', 'FontSize', 10, 'FontWeight', 'bold'); % Подпись угла наклона у каждого объекта
+end
+
+% Нахождение объекта с наименьшим углом наклона
+[~, minAngleIndex] = min(abs(angles)); % Индекс объекта с наименьшим углом
+minAngleBoundary = B{minAngleIndex};
+plot(minAngleBoundary(:,2), minAngleBoundary(:,1), 'r', 'LineWidth', 2); % Выделение объекта с наименьшим углом красным цветом
+title(sprintf('Объект с минимальным углом наклона: %.2f°', angles(minAngleIndex)));
+% hold off;
+
+% Поворот каждого голубого объекта
+for k = 1:length(B)
+    boundary = B{k};
+    [orientation, ~] = fit_line_to_boundary(boundary); % Используем ту же функцию для получения угла наклона
+    
+    % Вычисляем угол поворота
+    rotationAngle = -orientation;
+    
+    % Получаем центроид для использования в качестве центра поворота
+    centroid = mean(boundary);
+    
+    % Поворачиваем каждую точку границы
+    rotatedBoundary = (boundary - centroid) * [cosd(rotationAngle) -sind(rotationAngle); sind(rotationAngle) cosd(rotationAngle)] + centroid;
+    
+    % Отрисовка повернутой границы
+    plot(rotatedBoundary(:,2), rotatedBoundary(:,1), 'b', 'LineWidth', 2);
+    
+    % Подписываем угол наклона как 0, поскольку объект был выровнен
+    text(mean(rotatedBoundary(:,2)), mean(rotatedBoundary(:,1)), '0.00°', ...
+         'Color', 'y', 'FontSize', 10, 'FontWeight', 'bold');
+end
+title('Голубые объекты с углом наклона 0°');
+% hold off;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% Функция для подгонки линии по границе объекта и вычисления угла наклона
+function [orientation, lineFit] = fit_line_to_boundary(boundary)
+    % Вычисление коэффициентов линейной подгонки
+    lineFit = polyfit(boundary(:,2), boundary(:,1), 1);
+    % Вычисление угла наклона линии
+    orientation = atan(-lineFit(1)) * (180 / pi);
+end
