@@ -1,52 +1,47 @@
 clear
-%1
-% Load the image
+% Загружаем изображение
 originalImage = imread('Pic_pr3_1.bmp');
 
-% Convert to HSV color space to make color segmentation easier
+% Переводим в HSV для упрощённой сегментации по цвету
 hsvImage = rgb2hsv(originalImage);
 
-% Define thresholds for 'red' color
-% Note that red color may span the edges of the hue component in the HSV color space
-hueThresholdLow = 0.0; % Adjust as needed
-hueThresholdHigh = 0.1; % Adjust as needed
-saturationThresholdLow = 0.5; % Adjust as needed
-valueThresholdLow = 0.5; % Adjust as needed
+%Определяем пороги для красного цвета
+hueThresholdLow = 0.0; 
+hueThresholdHigh = 0.1; 
+saturationThresholdLow = 0.5; 
+valueThresholdLow = 0.5;
 
-% Create masks for red color
+% Создаём маски для красных обьектов
 redMask = (hsvImage(:,:,1) >= hueThresholdLow) & ...
           (hsvImage(:,:,1) <= hueThresholdHigh) & ...
           (hsvImage(:,:,2) >= saturationThresholdLow) & ...
           (hsvImage(:,:,3) >= valueThresholdLow);
 
-% Perform morphological closing to fill in gaps
-se = strel('disk', 3); % Adjust size as needed
+% Производим морфологическое закрытие для избавления от щелей
+se = strel('disk', 3); 
 redMaskClosed = imclose(redMask, se);
 
-% Label connected components
+% Маркируем обьекты
 [labels, numObjects] = bwlabel(redMaskClosed, 8);
 
-% Measure properties of connected components
+% Измеряем площадь и индекс наименьшего обьекта
 objectMeasurements = regionprops(labels, 'Area', 'PixelIdxList');
 
-% Find the smallest red object by area
-[minArea, idxOfSmallest] = min([objectMeasurements.Area]);
+% Выбираем наименьший обьект
+[minArea, minAreaIndex] = min([objectMeasurements.Area]);
 
-% Create a mask for the smallest object
-smallestRedObjectMask = false(size(redMask));
-smallestRedObjectMask(objectMeasurements(idxOfSmallest).PixelIdxList) = true;
-
-% Display the original image
-subplot(1, 2, 1);
+% Выделяем наименьший объект черной рамкой
+smallestObjectBoundary = bwboundaries(labels == minAreaIndex);
+boundary = smallestObjectBoundary{1};
 imshow(originalImage);
-title('Original Image');
+hold on;
+plot(boundary(:,2), boundary(:,1), 'k', 'LineWidth', 4); % Рисуем границы черным цветом
 
-% Overlay the mask of the smallest red object on the original image
-smallestRedObjectRgbImage = originalImage;
-smallestRedObjectRgbImage(repmat(~smallestRedObjectMask, [1, 1, 3])) = 0;
-subplot(1, 2, 2);
-imshow(smallestRedObjectRgbImage);
-title('Smallest Red Object');
-
-
-%2
+% Отображение площади на каждом красном объекте
+for k = 1:numObjects
+    objectArea = objectMeasurements(k).Area;
+    centroid = regionprops(labels == k, 'Centroid');
+    text(centroid.Centroid(1), centroid.Centroid(2), num2str(objectArea), ...
+         'Color', 'w', 'FontSize', 10, 'FontWeight', 'bold');
+end
+hold off;

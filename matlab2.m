@@ -1,29 +1,26 @@
 % Загрузка изображения 'Pic_pr3_1.bmp'
-image = imread('Pic_pr3_1.bmp');
+originalImage = imread('Pic_pr3_1.bmp');
 
-% Определение зеленого цвета в изображении
-greenChannel = image(:, :, 2); % Извлечение зеленого канала
-redChannel = image(:, :, 1); % Извлечение красного канала
-blueChannel = image(:, :, 3); % Извлечение синего канала
+% Переводим в HSV для упрощённой сегментации по цвету
+hsvImage = rgb2hsv(originalImage);
 
-% Создание маски для красных объектов
-redMask = redChannel > greenChannel & redChannel > blueChannel;
+%Определяем пороги для красного цвета
+hueThresholdLow = 0.0; 
+hueThresholdHigh = 0.1; 
+saturationThresholdLow = 0.5; 
+valueThresholdLow = 0.5;
+
+% Создаём маски для красных обьектов
+redMask = (hsvImage(:,:,1) >= hueThresholdLow) & ...
+          (hsvImage(:,:,1) <= hueThresholdHigh) & ...
+          (hsvImage(:,:,2) >= saturationThresholdLow) & ...
+          (hsvImage(:,:,3) >= valueThresholdLow);
 
 % Удаление шума с помощью морфологической операции
 se = strel('disk', 3);
-redMaskCleaned = imopen(redMask, se);
+redMaskClosed = imopen(redMask, se);
 
-% Нахождение контуров красных объектов
-[B,L] = bwboundaries(redMaskCleaned, 'noholes');
-
-% Обведение красных объектов черной рамкой
-imshow(image);
-hold on;
-for k = 1:length(B)
-    boundary = B{k};
-    plot(boundary(:,2), boundary(:,1), 'k', 'LineWidth', 2);
-end
-hold off;
+imshow(originalImage)
 
 % Нахождение свойств для каждого красного объекта
 properties = regionprops(L, 'BoundingBox', 'Area', 'Eccentricity', 'Perimeter', 'Centroid');
