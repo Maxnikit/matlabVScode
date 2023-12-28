@@ -1,23 +1,26 @@
 % Загрузка изображения 'Pic_pr3_1.bmp'
-image = imread('Pic_pr3_1.bmp');
+originalImage = imread('Pic_pr3_1.bmp');
 
-% Определение зеленого цвета в изображении
-greenChannel = image(:, :, 2); % Извлечение зеленого канала
-redChannel = image(:, :, 1); % Извлечение красного канала
-blueChannel = image(:, :, 3); % Извлечение синего канала
+% Переводим в HSV для упрощённой сегментации по цвету
+hsvImage = rgb2hsv(originalImage);
 
-% Создание маски для зеленых объектов
-greenMask = greenChannel > redChannel & greenChannel > blueChannel;
+%Определяем пороги для зелёного цвета
+hueThresholdLow = 0.2; 
+hueThresholdHigh = 0.5; 
+valueThresholdLow = 0.1;
+
+% Создаём маски для зелёных обьектов
+greenMask = (hsvImage(:,:,1) >= hueThresholdLow) & ...
+            (hsvImage(:,:,1) <= hueThresholdHigh) & ...
+            (hsvImage(:,:,2) >= saturationThresholdLow) & ...
+            (hsvImage(:,:,3) >= valueThresholdLow);
 
 % Удаление шума с помощью морфологической операции
 se = strel('disk', 3);
 greenMaskCleaned = imopen(greenMask, se);
 
-% Нахождение контуров зеленых объектов
-[B,L] = bwboundaries(greenMaskCleaned, 'noholes');
 
-% Обведение зеленых объектов черной рамкой
-imshow(image);
+imshow(originalImage);
 hold on;
 
 % Вычисление минимального расстояния между краями зеленых объектов

@@ -1,13 +1,19 @@
 % Загрузка изображения 'Pic_pr3_1.bmp'
 originalImage = imread('Pic_pr3_1.bmp');
 
-% Определение цветов в изображении
-redChannel = originalImage(:, :, 1); % Извлечение красного канала
-greenChannel = originalImage(:, :, 2); % Извлечение зеленого канала
-blueChannel = originalImage(:, :, 3); % Извлечение синего канала
+% Преобразование изображения в пространство цветов HSV
+hsvImage = rgb2hsv(originalImage);
+% Определяем пороги для синего цвета
+hueThresholdLow = 0.5;    
+hueThresholdHigh = 0.67;   
+saturationThresholdLow = 0.5; 
+valueThresholdLow = 0.5;      
 
-% Создание маски для голубых обьектов
-blueMask = blueChannel > redChannel & blueChannel > greenChannel;
+% Создание масок для выделения синего цвета
+blueMask = (hsvImage(:,:,1) >= hueThresholdLow) & ...
+            (hsvImage(:,:,1) <= hueThresholdHigh) & ...
+            (hsvImage(:,:,2) >= saturationThresholdLow) & ...
+            (hsvImage(:,:,3) >= valueThresholdLow);
 
 % Удаление шума с помощью морфологической операции
 se = strel('disk', 3);
@@ -19,18 +25,21 @@ blueMaskCleaned = imopen(blueMask, se);
 % Отображение изображения с выделенными голубыми объектами
 imshow(originalImage);
 hold on;
-for k = 1:length(B)
-    boundary = B{k};
-    plot(boundary(:,2), boundary(:,1), 'b', 'LineWidth', 2); % Рисуем границы синим цветом
-end
-
 title('Голубые объекты');
-
+% Проверяем параметр Orientation у каждого обьекта и пишем его
 properties = regionprops(L, 'Orientation', 'Centroid');
 
 for k = 1:length(properties)
     orientation = properties(k).Orientation;
     centroid = properties(k).Centroid;
     text(centroid(1), centroid(2), sprintf('Orientation: %.2f', orientation), ...
-        'Color', 'r', 'FontSize', 10, 'FontWeight', 'bold');
+        'Color', 'r', 'FontSize', 14, 'FontWeight', 'bold');
 end
+% Нахождение объекта с наименьшим углом наклона по модулю
+[minOrientationValue, minOrientationIndex] = min(abs([properties.Orientation]));
+
+% Выделение объекта с наименьшим углом наклона чёрной рамкой
+minBoundary = B{minOrientationIndex};
+plot(minBoundary(:,2), minBoundary(:,1), 'k', 'LineWidth', 3);
+
+hold off
