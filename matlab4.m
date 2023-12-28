@@ -19,13 +19,11 @@ blueMask = (hsvImage(:,:,1) >= hueThresholdLow) & ...
 se = strel('disk', 3);
 blueMaskCleaned = imopen(blueMask, se);
 
-% Нахождение контуров голубых объектов
-[B,L] = bwboundaries(blueMaskCleaned, 'noholes');
-
 % Отображение изображения с выделенными голубыми объектами
 imshow(originalImage);
 hold on;
 title('Голубые объекты');
+
 % Проверяем параметр Orientation у каждого обьекта и пишем его
 properties = regionprops(L, 'Orientation', 'Centroid');
 
