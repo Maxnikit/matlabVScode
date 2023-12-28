@@ -47,7 +47,7 @@ perimeter = properties(k).Perimeter;
         % Увеличение количества красных квадратов
         numRedSquares = numRedSquares + 1;
         
-        % Обведение квадрата красной линией
+        % Обведение квадрата зелёной линией
         rectangle('Position', boundingBox, 'EdgeColor', 'g', 'LineWidth', 2);
     end
 end
