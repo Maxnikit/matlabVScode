@@ -12,13 +12,14 @@ valueThresholdLow = 0.1;
 % Создаём маски для зелёных обьектов
 greenMask = (hsvImage(:,:,1) >= hueThresholdLow) & ...
             (hsvImage(:,:,1) <= hueThresholdHigh) & ...
-            (hsvImage(:,:,2) >= saturationThresholdLow) & ...
             (hsvImage(:,:,3) >= valueThresholdLow);
 
 % Удаление шума с помощью морфологической операции
 se = strel('disk', 3);
 greenMaskCleaned = imopen(greenMask, se);
 
+% Нахождение контуров зеленых объектов
+[B,L] = bwboundaries(greenMaskCleaned, 'noholes');
 
 imshow(originalImage);
 hold on;
