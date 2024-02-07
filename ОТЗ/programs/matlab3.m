@@ -51,8 +51,8 @@ for i = 1:length(B)
 end
 
 % Вывод результатов
-fprintf('Минимальное расстояние между краями зеленых объектов: %f\n', minDistance);
-fprintf('Объекты с минимальным расстоянием: %d и %d\n', closestObjects(1), closestObjects(2));
+fprintf('Расстояние, между двумя ближайшими зелёными обьектами: %f\n', minDistance);
+
 % Проведение линии между ближайшими объектами
 boundary1 = B{closestObjects(1)};
 boundary2 = B{closestObjects(2)};
@@ -66,4 +66,5 @@ point1 = boundary1(minIndex1(minIndex2), :);
 point2 = boundary2(minIndex2, :);
 
 % Рисование линии между ближайшими точками двух объектов
-line([point1(2), point2(2)], [point1(1), point2(1)], 'Color', 'r', 'LineWidth', 2);
+line([point1(2), point2(2)], [point1(1), point2(1)], 'Color', 'black', 'LineWidth', 3);
+
