@@ -1,4 +1,5 @@
-% Загрузка изображения 'Pic_pr3_1.bmp'
+clear
+% Загружаем изображение
 originalImage = imread('Pic_pr3_1.bmp');
 
 % Переводим в HSV для упрощённой сегментации по цвету
@@ -16,44 +17,31 @@ redMask = (hsvImage(:,:,1) >= hueThresholdLow) & ...
           (hsvImage(:,:,2) >= saturationThresholdLow) & ...
           (hsvImage(:,:,3) >= valueThresholdLow);
 
-% Удаление шума с помощью морфологической операции
-se = strel('disk', 3);
-redMaskClosed = imopen(redMask, se);
+% Производим морфологическое закрытие для избавления от щелей
+se = strel('disk', 3); 
+redMaskClosed = imclose(redMask, se);
 
-imshow(originalImage)
+% Маркируем обьекты
+[labels, numObjects] = bwlabel(redMaskClosed, 8);
 
-% Нахождение свойств для каждого красного объекта
-properties = regionprops(L, 'BoundingBox', 'Area', 'Eccentricity', 'Perimeter', 'Centroid');
+% Измеряем площадь и индекс наименьшего обьекта
+objectMeasurements = regionprops(labels, 'Area', 'PixelIdxList');
 
-% Инициализация переменной для подсчета красных квадратов
-numRedSquares = 0;
+% Выбираем наименьший обьект
+[minArea, minAreaIndex] = min([objectMeasurements.Area]);
 
-% Анализ каждого красного объекта
-for k = 1:length(properties)
-    % Получение координат ограничивающего прямоугольника и площади
-    boundingBox = properties(k).BoundingBox;
-    area = properties(k).Area;
-perimeter = properties(k).Perimeter;
-    eccentricity = properties(k).Eccentricity;
-    circularity = (4 * pi * area)/(perimeter^2);
-    
-    % Вычисление соотношения сторон ограничивающего прямоугольника
-    width = boundingBox(3);
-    height = boundingBox(4);
-    aspectRatio = width / height;
-    
-    % Проверка, является ли объект квадратом и не кругом
-    if aspectRatio > 0.9 && aspectRatio < 1.1  && circularity < 0.9
-        % Увеличение количества красных квадратов
-        numRedSquares = numRedSquares + 1;
-        
-        % Обведение квадрата зелёной линией
-        rectangle('Position', boundingBox, 'EdgeColor', 'g', 'LineWidth', 2);
-    end
+% Выделяем наименьший объект черной рамкой
+smallestObjectBoundary = bwboundaries(labels == minAreaIndex);
+boundary = smallestObjectBoundary{1};
+imshow(originalImage);
+hold on;
+plot(boundary(:,2), boundary(:,1), 'k', 'LineWidth', 3); % Рисуем границы черным цветом
+
+% Отображение площади на каждом красном объекте
+for k = 1:numObjects
+    objectArea = objectMeasurements(k).Area;
+    centroid = regionprops(labels == k, 'Centroid');
+    text(centroid.Centroid(1), centroid.Centroid(2), num2str(objectArea), ...
+         'Color', 'w', 'FontSize', 12, 'FontWeight', 'bold');
 end
-
-% Вывод количества красных квадратов
-disp(['Количество красных квадратов: ' num2str(numRedSquares)]);
-
-
-
+hold off;

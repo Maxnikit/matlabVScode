@@ -35,7 +35,7 @@ smallestObjectBoundary = bwboundaries(labels == minAreaIndex);
 boundary = smallestObjectBoundary{1};
 imshow(originalImage);
 hold on;
-plot(boundary(:,2), boundary(:,1), 'k', 'LineWidth', 4); % Рисуем границы черным цветом
+plot(boundary(:,2), boundary(:,1), 'k', 'LineWidth', 3); % Рисуем границы черным цветом
 
 % Отображение площади на каждом голубом объекте
 for k = 1:numObjects
