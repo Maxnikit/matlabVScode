@@ -3,26 +3,25 @@ originalImage = imread('Pic_pr3_1.bmp');
 
 % Преобразование изображения в пространство цветов HSV
 hsvImage = rgb2hsv(originalImage);
-% Определяем пороги для синего цвета
-hueThresholdLow = 0.5;    
-hueThresholdHigh = 0.67;   
-saturationThresholdLow = 0.5; 
-valueThresholdLow = 0.5;      
 
-% Создание масок для выделения синего цвета
-blueMask = (hsvImage(:,:,1) >= hueThresholdLow) & ...
+%Определяем пороги для зелёного цвета
+hueThresholdLow = 0.2; 
+hueThresholdHigh = 0.5; 
+valueThresholdLow = 0.1;
+
+% Создаём маски для зелёных обьектов
+greenMask = (hsvImage(:,:,1) >= hueThresholdLow) & ...
             (hsvImage(:,:,1) <= hueThresholdHigh) & ...
-            (hsvImage(:,:,2) >= saturationThresholdLow) & ...
             (hsvImage(:,:,3) >= valueThresholdLow);
 
 % Удаление шума с помощью морфологической операции
 se = strel('disk', 3);
-blueMaskCleaned = imopen(blueMask, se);
+greenMaskCleaned = imopen(greenMask, se);
 
-% Отображение изображения с выделенными голубыми объектами
+% Отображение изображения
 imshow(originalImage);
 hold on;
-title('Голубые объекты');
+title('Зелёные обьекты');
 
 % Проверяем параметр Orientation у каждого обьекта и пишем его
 properties = regionprops(L, 'Orientation', 'Centroid');
@@ -30,14 +29,14 @@ properties = regionprops(L, 'Orientation', 'Centroid');
 for k = 1:length(properties)
     orientation = properties(k).Orientation;
     centroid = properties(k).Centroid;
-    text(centroid(1), centroid(2), sprintf('Orientation: %.2f', orientation), ...
-        'Color', 'r', 'FontSize', 14, 'FontWeight', 'bold');
+    text(centroid(1), centroid(2), sprintf('Угол наклона: %.2f', orientation), ...
+        'Color', 'black', 'FontSize', 12, 'FontWeight', 'bold');
 end
-% Нахождение объекта с наименьшим углом наклона по модулю
-[minOrientationValue, minOrientationIndex] = min(abs([properties.Orientation]));
+% Нахождение объекта с наибольшим углом наклона
+[maxOrientationValue, maxOrientationIndex] = max([properties.Orientation]);
 
 % Выделение объекта с наименьшим углом наклона чёрной рамкой
-minBoundary = B{minOrientationIndex};
-plot(minBoundary(:,2), minBoundary(:,1), 'k', 'LineWidth', 3);
+maxBoundary = B{maxOrientationIndex};
+plot(maxBoundary(:,2), maxBoundary(:,1), 'k', 'LineWidth', 3);
 
 hold off
